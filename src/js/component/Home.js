@@ -24,16 +24,46 @@ const Home = () => {
             method: "GET",
         })
             .then(resp => {
+                if (!resp.ok) {                 // solicitud para crear nueva lista en caso de 404
+                    if (resp.status === 404) {
+                        return createTodoList();
+                    }
+                    throw new Error("Error fetching todos");
+                }
                 return resp.json(); // Intentará parsear el resultado a JSON y retornará una promesa donde puedes usar .then para seguir con la lógica
             })
             .then(data => {
-                setTodo(data.todos); // asumiendo que data es un array y no un objeto con una propiedad "todos"
-            })
+                if (data && data.todos) {
+                    setTodo(data.todos); // asumiendo que data es array y no un objeto con una propiedad "todos"
+                }})
             .catch(error => {
                 // Manejo de errores
                 console.log(error);
             });
     };
+    function createTodoList() {             // funcion para crear usuario otra vez, cuando la API se resetea
+        fetch('https://playground.4geeks.com/todo/users/albertrivino', {
+            method: "POST",
+            body: JSON.stringify([]),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+            .then(resp => {
+                if (!resp.ok) {
+                    throw new Error("Error creating todo list");
+                }
+                return resp.json();
+            })
+            .then(data => {
+                console.log("Todo list created:", data);
+                setTodo([]);
+            })
+            .catch(error => {
+                // Manejo de errores
+                console.log(error);
+            });
+    }
 
     function postTodo(newTask) {
         fetch("https://playground.4geeks.com/todo/todos/albertrivino", {
